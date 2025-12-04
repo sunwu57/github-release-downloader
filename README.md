@@ -17,7 +17,7 @@
 ## 安装
 
 ```bash
-go get github.com/yourusername/github-release-downloader
+go get github.com/sunwu57/github-release-downloader
 ```
 
 ## 使用示例
@@ -30,7 +30,7 @@ import (
 	"log"
 	"time"
 
-	"github-releasedownloader "github.com/yourusername/github-release-downloader"
+	"github-releasedownloader "github.com/sunwu57/github-release-downloader"
 )
 
 func main() {
