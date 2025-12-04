@@ -20,20 +20,24 @@ func (c *Client) extractFile(filePath string) (string, error) {
 	)
 
 	// 获取文件扩展名
-	ext := strings.ToLower(filepath.Ext(filePath))
-	
+	lowerPath := strings.ToLower(filePath)
 	var extractedDir string
 	var err error
 
-	switch ext {
-	case ".zip":
-		extractedDir, err = c.extractZip(filePath)
-	case ".tar.gz", ".tgz":
+	// 先检查特殊的双重扩展名
+	if strings.HasSuffix(lowerPath, ".tar.gz") || strings.HasSuffix(lowerPath, ".tgz") {
 		extractedDir, err = c.extractTarGz(filePath)
-	case ".gz":
-		extractedDir, err = c.extractGz(filePath)
-	default:
-		return "", fmt.Errorf("不支持的压缩格式: %s", ext)
+	} else {
+		// 再检查普通扩展名
+		ext := filepath.Ext(lowerPath)
+		switch ext {
+		case ".zip":
+			extractedDir, err = c.extractZip(filePath)
+		case ".gz":
+			extractedDir, err = c.extractGz(filePath)
+		default:
+			return "", fmt.Errorf("不支持的压缩格式: %s", ext)
+		}
 	}
 
 	if err != nil {
@@ -42,6 +46,15 @@ func (c *Client) extractFile(filePath string) (string, error) {
 			zap.Error(err),
 		)
 		return "", err
+	}
+
+	// 解压成功后删除原压缩文件
+	if err := os.Remove(filePath); err != nil {
+		c.logger.Warn("删除原压缩文件失败",
+			zap.String("filePath", filePath),
+			zap.Error(err),
+		)
+		// 删除失败不影响返回
 	}
 
 	c.logger.Info("文件解压成功",
@@ -136,7 +149,11 @@ func (c *Client) extractTarGz(filePath string) (string, error) {
 	tarReader := tar.NewReader(gzipReader)
 
 	// 创建解压目录
-	extractedDir := strings.TrimSuffix(filePath, filepath.Ext(strings.TrimSuffix(filePath, filepath.Ext(filePath))))
+	firstExt := filepath.Ext(filePath)                             // .gz
+	withoutFirstExt := strings.TrimSuffix(filePath, firstExt)      // xxx.tar
+	secondExt := filepath.Ext(withoutFirstExt)                     // .tar
+	extractedDir := strings.TrimSuffix(withoutFirstExt, secondExt) // xxx
+
 	if err := os.MkdirAll(extractedDir, 0755); err != nil {
 		return "", fmt.Errorf("创建解压目录失败: %w", err)
 	}

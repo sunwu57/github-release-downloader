@@ -38,7 +38,7 @@ func defaultOptions() *Options {
 		BufferSize:     DefaultBufferSize,
 		Timeout:        DefaultTimeout,
 		AutoExtract:    false,
-		DownloadSource: false,
+		DownloadSource: true,
 		CheckLatest:    true,
 		LoggerLevel:    DefaultLoggerLevel,
 		ShowProgress:   false,

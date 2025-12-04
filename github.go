@@ -83,8 +83,8 @@ func (c *Client) getSourceCodeURL(owner, repo, tag string) (string, error) {
 	}
 	
 	// 构建源代码URL
-	// GitHub的源代码下载URL格式为: https://github.com/{owner}/{repo}/archive/refs/tags/{tag}.tar.gz
-	url := fmt.Sprintf("https://github.com/%s/%s/archive/refs/tags/%s.tar.gz", owner, repo, tag)
+	// GitHub的源代码下载URL格式为: https://github.com/{owner}/{repo}/archive/refs/tags/{tag}.zip
+	url := fmt.Sprintf("https://github.com/%s/%s/archive/refs/tags/%s.zip", owner, repo, tag)
 	
 	c.logger.Info("获取源代码URL成功",
 		zap.String("owner", owner),
@@ -244,7 +244,16 @@ func (c *Client) getReleaseAssets(release *github.RepositoryRelease) []*github.R
 		return matchedAssets
 	}
 	
-	// 如果没有找到匹配的资产，返回第一个资产
+	// 如果没有找到匹配的资产，检查是否应该下载源代码
+	if c.options.DownloadSource {
+		c.logger.Info("没有找到匹配当前平台的资产，将下载源代码",
+			zap.String("os", currentOS),
+			zap.String("arch", currentArch),
+		)
+		return []*github.ReleaseAsset{}
+	}
+	
+	// 如果没有配置下载源代码，返回第一个资产
 	c.logger.Warn("没有找到匹配当前平台的资产，返回第一个资产",
 		zap.String("os", currentOS),
 		zap.String("arch", currentArch),

@@ -292,7 +292,7 @@ func (c *Client) DownloadSourceCode(owner, repo, tag string) (string, error) {
 	}
 
 	// 构建文件名
-	fileName := fmt.Sprintf("%s-%s-%s.tar.gz", owner, repo, tag)
+	fileName := fmt.Sprintf("%s-%s-%s.zip", owner, repo, tag)
 	filePath := filepath.Join(c.options.CacheDir, fileName)
 
 	// 下载文件
